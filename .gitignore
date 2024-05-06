@@ -1,0 +1,17 @@
+
+data
+
+*.pyc
+__python__
+__pycache__
+*.pyo
+
+
+env
+.env
+
+
+*.sqlite*
+
+.idea
+.vscode
