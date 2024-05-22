@@ -29,6 +29,15 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000/",
+        "http://127.0.0.1:3000/",
+    ]
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -49,6 +58,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     "dj_rest_auth", # Helps social authentication on SPA apps
     "dj_rest_auth.registration",
+    "corsheaders",
 
     # Custom apps
     'application.authentication',
@@ -58,6 +68,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware', # Cors
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -71,6 +82,12 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
+
+# Custom user model
+AUTH_USER_MODEL = 'authentication.User'
+
+# Allauth configuration
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
 # DRF
 REST_FRAMEWORK = {
@@ -148,7 +165,7 @@ WSGI_APPLICATION = 'application.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': getenv("POSTGRES_DB", "postgres"),
+        'NAME': getenv("POSTGRES_DB", "bigapp"),
         'USER': getenv("POSTGRES_USER", "postgres"),
         'PASSWORD': getenv("POSTGRES_PASSWORD", "password"),
         'HOST': getenv("POSTGRES_HOST", "127.0.0.1"),
@@ -197,3 +214,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# Tests
+TEST_RUNNER = 'application.custom.test_runner.CustomTestRunner'
