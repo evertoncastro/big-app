@@ -1,17 +1,16 @@
 import django
 django.setup()
-from django.test import TestCase
 from django.urls import reverse
+from rest_framework.test import APITestCase
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.authtoken.models import Token
 from application.authentication.models import User
 from django.db import transaction
 
 
-class RegisterViewTestCase(TestCase):
+class RegisterViewTestCase(APITestCase):
     
     def setUp(self):
-        self.client = APIClient()
         self.register_url = reverse('rest_register')
 
     def test_registration(self):
@@ -22,6 +21,10 @@ class RegisterViewTestCase(TestCase):
         }
         response = self.client.post(self.register_url, user_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user = User.objects.get(email='test@example.com')
+        self.assertTrue('access' in response.data)
+        self.assertTrue('refresh' in response.data)
+        self.assertEqual(response.data['user'], {'pk': user.pk, 'email': 'test@example.com', 'first_name': '', 'last_name': ''})
         self.assertTrue(User.objects.filter(email='test@example.com').exists())
 
 
@@ -38,3 +41,29 @@ class RegisterViewTestCase(TestCase):
             }
             response = self.client.post(self.register_url, user_data, format='json')
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class LoginViewTestCase(APITestCase):
+
+    def setUp(self):
+        self.login_url = reverse('rest_login')
+        self.user = User.objects.create_user(email="user1@example.com", password="TestPassword123")
+
+    def test_login(self):
+        user_data = {
+            'email': self.user.email,
+            'password': 'TestPassword123'
+        }
+
+        response = self.client.post(self.login_url, user_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue('access' in response.data)
+        self.assertTrue('refresh' in response.data)
+        self.assertLessEqual(
+            {'email': self.user.email, 'pk': self.user.id}.items(), 
+            response.data['user'].items()
+        )
+
+
+
+
